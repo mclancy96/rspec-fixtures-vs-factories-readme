@@ -1,6 +1,6 @@
 # RSpec: Fixtures vs Factories: Test Data in Rails
 
-Welcome to Lesson 23! In this lesson, you'll learn the difference between Rails fixtures and FactoryBot factories for setting up test data in your specs. We'll explain what each approach is, how they work, and why most modern Rails projects prefer factories. We'll also show you best practices for writing maintainable, DRY, and flexible factories. If you know Ruby and Rails but are new to automated testing, this is your essential guide to test data!
+In this lesson, you'll learn the difference between Rails fixtures and FactoryBot factories for setting up test data in your specs. We'll explain what each approach is, how they work, and why most modern Rails projects prefer factories. We'll also show you best practices for writing maintainable, DRY, and flexible factories. If you know Ruby and Rails but are new to automated testing, this is your essential guide to test data!
 
 ---
 
