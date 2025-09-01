@@ -1,0 +1,6 @@
+alice:
+  name: Alice
+  organization: org_one
+bob:
+  name: Bob
+  organization: org_two

@@ -17,22 +17,23 @@ Automated tests need data to work with—users, posts, comments, etc. You want y
 
 Fixtures are YAML files that define sample data for your models. Rails loads them before each test run.
 
-```yaml
-# /test/fixtures/users.yml
-bob:
-  username: bob
-  email: bob@example.com
-
 alice:
-  username: alice
-  email: alice@example.com
+
+```yaml
+# /test/fixtures/volunteers.yml
+alice:
+  name: Alice
+  organization: org_one
+bob:
+  name: Bob
+  organization: org_two
 ```
 
 In your tests, you can reference these records by name:
 
 ```ruby
-# /test/models/user_test.rb
-user = users(:bob)
+# /spec/models/volunteer_spec.rb
+volunteer = volunteers(:alice)
 ```
 
 **Pros:**
@@ -54,14 +55,14 @@ Suppose you want to create a user with a different email just for one test:
 
 ```ruby
 # With fixtures (not easy to override):
-user = users(:bob)
-user.email = "new@email.com" # This change won't persist between tests!
+volunteer = volunteers(:alice)
+volunteer.name = "New Name" # This change won't persist between tests!
 ```
 
 With factories, you can do this easily:
 
 ```ruby
-user = create(:user, email: "new@email.com")
+volunteer = create(:volunteer, name: "New Name")
 ```
 
 ---
@@ -71,11 +72,11 @@ user = create(:user, email: "new@email.com")
 Factories are Ruby code (usually with FactoryBot) that define blueprints for creating test data on the fly.
 
 ```ruby
-# /spec/factories/users.rb
+# /spec/factories/volunteers.rb
 FactoryBot.define do
-  factory :user do
-    username { "testuser" }
-    email { "test@example.com" }
+  factory :volunteer do
+    sequence(:name) { |n| "Volunteer#{n}" }
+    association :organization
   end
 end
 ```
@@ -83,16 +84,16 @@ end
 In your specs, you can create users as needed:
 
 ```ruby
-# /spec/models/user_spec.rb
-user = create(:user)
+# /spec/models/volunteer_spec.rb
+volunteer = create(:volunteer)
 ```
 
 Or, using RSpec's `let` for even cleaner setup:
 
 ```ruby
-# /spec/models/user_spec.rb
-RSpec.describe User do
-  let(:user) { create(:user) }
+# /spec/models/volunteer_spec.rb
+RSpec.describe Volunteer do
+  let(:volunteer) { create(:volunteer) }
   # ...your tests here...
 end
 ```
@@ -116,20 +117,22 @@ end
 With fixtures, associations are defined in YAML:
 
 ```yaml
-# /test/fixtures/posts.yml
-first_post:
-  title: First Post
-  user: bob
+# /test/fixtures/shifts.yml
+morning:
+  starts_at: 2025-09-01 08:00:00
+  ends_at: 2025-09-01 12:00:00
+  organization: org_one
 ```
 
 With factories, you can use associations:
 
 ```ruby
-# /spec/factories/posts.rb
+# /spec/factories/shifts.rb
 FactoryBot.define do
-  factory :post do
-    title { "A blog post" }
-    association :user
+  factory :shift do
+    starts_at { 1.day.from_now }
+    ends_at { 2.days.from_now }
+    association :organization
   end
 end
 ```
@@ -137,9 +140,9 @@ end
 And in your spec:
 
 ```ruby
-# /spec/models/post_spec.rb
-post = create(:post)
-expect(post.user).to be_present
+# /spec/models/shift_spec.rb
+shift = create(:shift)
+expect(shift.organization).to be_present
 ```
 
 ---
@@ -149,20 +152,20 @@ expect(post.user).to be_present
 - Use sequences for unique fields:
 
 ```ruby
-# /spec/factories/users.rb
-factory :user do
-  sequence(:username) { |n| "user#{n}" }
-  email { "user@example.com" }
+# /spec/factories/volunteers.rb
+factory :volunteer do
+  sequence(:name) { |n| "Volunteer#{n}" }
+  association :organization
 end
 ```
 
 - Use traits for variations:
 
 ```ruby
-# /spec/factories/users.rb
-factory :user do
-  trait :admin do
-    admin { true }
+# /spec/factories/volunteers.rb
+factory :volunteer do
+  trait :lead do
+    # add lead-specific attributes here
   end
 end
 ```
@@ -178,11 +181,11 @@ end
 Here's a simple diagram showing how factories can generate associated records dynamically:
 
 ```zsh
-create(:post)
+create(:shift)
   |
-  |---> FactoryBot builds a Post
+  |---> FactoryBot builds a Shift
          |
-         |---> FactoryBot automatically builds a User (association)
+         |---> FactoryBot automatically builds an Organization (association)
 ```
 
 ---
@@ -202,15 +205,70 @@ create(:post)
 
 ---
 
-## Practice Prompts & Reflection Questions
+## Getting Hands-On: Volunteer Coordination (Fixtures & Factories)
 
-1. Write a fixture for a model and use it in a test. What are the limitations?
-2. Write a factory for a model and use it in a spec. How does it compare to fixtures?
-3. Add a trait to a factory for a variation (e.g., admin user). How do you use it in a spec?
-4. Create a factory with an association. How does FactoryBot handle related records?
-5. Why might factories be more maintainable than fixtures in a growing codebase?
+Ready to practice? Here’s how to get started with the Volunteer Coordination Rails app:
 
-Reflect: What could go wrong if your test data is hard to change or doesn't match your real app?
+1. **Fork and Clone** this repo to your local machine.
+2. **Install dependencies:**
+
+   ```zsh
+   bundle install
+   ```
+
+3. **Set up the database:**
+
+   ```zsh
+   bin/rails db:migrate
+   ```
+
+4. **Run the test suite:**
+
+   ```zsh
+   bin/rspec
+   ```
+
+5. **Implement the pending specs:**
+   - Open `spec/models/volunteer_spec.rb`, `spec/models/shift_spec.rb`, and `spec/models/organization_spec.rb`.
+   - Look for specs marked with `skip` and a hint. Implement the corresponding trait or association in the factories or fixtures so all specs pass.
+
+### Example: Volunteer Model Spec (FactoryBot)
+
+```ruby
+# spec/models/volunteer_spec.rb
+RSpec.describe Volunteer, type: :model do
+  context 'with FactoryBot' do
+    it 'is valid with valid attributes' do
+      volunteer = build(:volunteer)
+      expect(volunteer).to be_valid
+    end
+    # ...more examples...
+  end
+end
+```
+
+### Example: Volunteer Model Spec (Fixtures)
+
+```ruby
+# spec/models/volunteer_spec.rb
+RSpec.describe Volunteer, type: :model do
+  context 'with fixtures' do
+    fixtures :volunteers, :organizations
+    it 'loads a volunteer from fixtures' do
+      expect(volunteers(:alice)).to be_a(Volunteer)
+    end
+    # ...more examples...
+  end
+end
+```
+
+---
+
+## Reflection
+
+- What are the tradeoffs between using fixtures and factories?
+- How does each approach affect test maintainability as your app grows?
+- What could go wrong if your test data is hard to change or doesn't match your real app?
 
 ---
 
